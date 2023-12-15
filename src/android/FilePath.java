@@ -315,6 +315,47 @@ public class FilePath extends CordovaPlugin {
         return "";
     }
 
+  public static String getRealPathFromURI(Uri uri, Context context) {
+    try {
+      InputStream inputStream = context.getContentResolver().openInputStream(uri);
+      File file = new File(context.getFilesDir(), getFileName(uri, context));
+      FileOutputStream outputStream = new FileOutputStream(file);
+      int read;
+      byte[] buffers = new byte[1024];
+      while ((read = inputStream.read(buffers)) != -1) {
+        outputStream.write(buffers, 0, read);
+      }
+      Log.e("File Size", "Size " + file.length());
+      inputStream.close();
+      outputStream.close();
+      Log.e("File Path", "Path " + file.getPath());
+      return file.getPath();
+    } catch (Exception e) {
+      Log.e("Exception", e.getMessage());
+      return null;
+    }
+  }
+
+  private static String getFileName(Uri uri, Context context) {
+    String result = null;
+    if (uri.getScheme().equals("content")) {
+      try (Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
+        if (cursor != null && cursor.moveToFirst()) {
+          int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+          result = cursor.getString(nameIndex);
+        }
+      }
+    }
+    if (result == null) {
+      result = uri.getPath();
+      int cut = result.lastIndexOf('/');
+      if (cut != -1) {
+        result = result.substring(cut + 1);
+      }
+    }
+    return result;
+  }
+
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access
      * Framework Documents, as well as the _data field for the MediaStore and
@@ -340,6 +381,9 @@ public class FilePath extends CordovaPlugin {
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 
+        String path123 = getRealPathFromURI(uri, context);
+        Log.e("RealPath", path123);
+      Log.e("RealPath", ""+new File(path123).exists());
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
             // ExternalStorageProvider
