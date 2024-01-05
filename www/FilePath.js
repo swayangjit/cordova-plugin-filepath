@@ -10,5 +10,9 @@ module.exports = {
      */
     resolveNativePath: function(path, successCallback, errorCallback) {
         exec(successCallback, errorCallback, "FilePath", "resolveNativePath", [path]);
+    },
+
+    getJWTToken: function(key, secret, successCallback, errorCallback) {
+        exec(successCallback, errorCallback, "FilePath", "getJWTToken", [key, secret]);
     }
 };

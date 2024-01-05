@@ -46,6 +46,10 @@
         </config-file>
 
         <source-file src="src/android/FilePath.java" target-dir="src/com/hiddentao/cordova/filepath"/>
+        <source-file src="src/android/Base64Util.java" target-dir="src/com/hiddentao/cordova/filepath"/>
+        <source-file src="src/android/CryptoUtil.java" target-dir="src/com/hiddentao/cordova/filepath"/>
+        <source-file src="src/android/JWTokenType.java" target-dir="src/com/hiddentao/cordova/filepath"/>
+        <source-file src="src/android/JWTTokenCreator.java" target-dir="src/com/hiddentao/cordova/filepath"/>
     </platform>
     <author email="ram@hiddentao.com">Ramesh Nair</author>
 </plugin>
