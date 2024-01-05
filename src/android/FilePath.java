@@ -76,11 +76,15 @@ public class FilePath extends CordovaPlugin {
         this.uriStr = args.getString(0);
 
         if (action.equals("resolveNativePath")) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            resolveNativePath();
+          } else {
             if (PermissionHelper.hasPermission(this, READ)) {
-                resolveNativePath();
+              resolveNativePath();
             } else {
-                getReadPermission(READ_REQ_CODE);
+              getReadPermission(READ_REQ_CODE);
             }
+          }
 
             return true;
         } else {
@@ -107,10 +111,8 @@ public class FilePath extends CordovaPlugin {
 
         // check result; send error/success callback
         if (filePath == GET_PATH_ERROR_ID) {
-            resultObj.put("code", GET_PATH_ERROR_CODE);
-            resultObj.put("message", "Unable to resolve filesystem path.");
-
-            this.callback.error(resultObj);
+          filePath = getRealPathFromURI(appContext, pvUrl);
+          this.callback.success("file://" + filePath);
         } else if (filePath.equals(GET_CLOUD_PATH_ERROR_ID)) {
             resultObj.put("code", GET_CLOUD_PATH_ERROR_CODE);
             resultObj.put("message", "Files from cloud cannot be resolved to filesystem, download is required.");
