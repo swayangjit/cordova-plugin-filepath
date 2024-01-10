@@ -116,10 +116,8 @@ public class FilePath extends CordovaPlugin {
 
     // check result; send error/success callback
     if (filePath == GET_PATH_ERROR_ID) {
-      resultObj.put("code", GET_PATH_ERROR_CODE);
-      resultObj.put("message", "Unable to resolve filesystem path.");
-
-      this.callback.error(resultObj);
+      filePath = getRealPathFromURI(appContext, pvUrl);
+      this.callback.success("file://" + filePath);
     } else if (filePath.equals(GET_CLOUD_PATH_ERROR_ID)) {
       resultObj.put("code", GET_CLOUD_PATH_ERROR_CODE);
       resultObj.put("message", "Files from cloud cannot be resolved to filesystem, download is required.");
