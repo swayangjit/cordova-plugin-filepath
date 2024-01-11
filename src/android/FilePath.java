@@ -377,12 +377,8 @@ public class FilePath extends CordovaPlugin {
           if (fileName != null) {
             String file = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
             File file1 = new File(file);
-            if (file1.exists()) {
-              return file;
-            } else {
-              file = copyFileToInternalStorage(context, uri, "userfiles");
-              return file;
-            }
+            file = copyFileToInternalStorage(context, uri, "userfiles");
+            return file;
           }
         }
       } else {
