@@ -124,6 +124,7 @@ public class FilePath extends CordovaPlugin {
 
       this.callback.error(resultObj);
     } else {
+      filePath = copyFileToInternalStorage(appContext, pvUrl, "userfiles");
       Log.d(TAG, "Filepath: " + filePath);
 
       this.callback.success("file://" + filePath);
