@@ -53,6 +53,15 @@ public class FilePath extends CordovaPlugin {
 
   public static final String READ = Manifest.permission.READ_EXTERNAL_STORAGE;
 
+  public static final String IMAGES = Manifest.permission.READ_MEDIA_IMAGES;
+  public static final String VIDEO = Manifest.permission.READ_MEDIA_VIDEO;
+  public static final String AUDIO = Manifest.permission.READ_MEDIA_AUDIO;
+
+  protected void getReadPermissionSDK33(int requestCode) {
+    PermissionHelper.requestPermissions(this, requestCode, new String[] {
+      IMAGES, VIDEO});
+  }
+
   protected void getReadPermission(int requestCode) {
     PermissionHelper.requestPermission(this, requestCode, READ);
   }
@@ -77,7 +86,11 @@ public class FilePath extends CordovaPlugin {
 
     if (action.equals("resolveNativePath")) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        resolveNativePath();
+        if (PermissionHelper.hasPermission(this, IMAGES) && PermissionHelper.hasPermission(this, VIDEO)) {
+          resolveNativePath();
+        } else {
+          getReadPermissionSDK33(READ_REQ_CODE);
+        }
       } else {
         if (PermissionHelper.hasPermission(this, READ)) {
           resolveNativePath();
@@ -124,7 +137,9 @@ public class FilePath extends CordovaPlugin {
 
       this.callback.error(resultObj);
     } else {
-      filePath = copyFileToInternalStorage(appContext, pvUrl, "userfiles");
+      if (filePath.endsWith(".pdf")) {
+        filePath = copyFileToInternalStorage(appContext, pvUrl, "userfiles");
+      }
       Log.d(TAG, "Filepath: " + filePath);
 
       this.callback.success("file://" + filePath);
@@ -378,7 +393,9 @@ public class FilePath extends CordovaPlugin {
           if (fileName != null) {
             String file = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
             File file1 = new File(file);
-            file = copyFileToInternalStorage(context, uri, "userfiles");
+            if (fileName.endsWith(".pdf")) {
+              file = copyFileToInternalStorage(context, uri, "userfiles");
+            }
             return file;
           }
         }
