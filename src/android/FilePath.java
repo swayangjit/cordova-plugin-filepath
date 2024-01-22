@@ -59,7 +59,7 @@ public class FilePath extends CordovaPlugin {
 
   protected void getReadPermissionSDK33(int requestCode) {
     PermissionHelper.requestPermissions(this, requestCode, new String[] {
-      IMAGES, VIDEO});
+      IMAGES, VIDEO, AUDIO});
   }
 
   protected void getReadPermission(int requestCode) {
