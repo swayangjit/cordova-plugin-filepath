@@ -53,6 +53,15 @@ public class FilePath extends CordovaPlugin {
 
   public static final String READ = Manifest.permission.READ_EXTERNAL_STORAGE;
 
+  public static final String IMAGES = Manifest.permission.READ_MEDIA_IMAGES;
+  public static final String VIDEO = Manifest.permission.READ_MEDIA_VIDEO;
+  public static final String AUDIO = Manifest.permission.READ_MEDIA_AUDIO;
+
+  protected void getReadPermissionSDK33(int requestCode) {
+    PermissionHelper.requestPermissions(this, requestCode, new String[] {
+      IMAGES, VIDEO, AUDIO});
+  }
+
   protected void getReadPermission(int requestCode) {
     PermissionHelper.requestPermission(this, requestCode, READ);
   }
@@ -77,7 +86,11 @@ public class FilePath extends CordovaPlugin {
 
     if (action.equals("resolveNativePath")) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        resolveNativePath();
+        if (PermissionHelper.hasPermission(this, IMAGES) && PermissionHelper.hasPermission(this, VIDEO)) {
+          resolveNativePath();
+        } else {
+          getReadPermissionSDK33(READ_REQ_CODE);
+        }
       } else {
         if (PermissionHelper.hasPermission(this, READ)) {
           resolveNativePath();
@@ -124,6 +137,9 @@ public class FilePath extends CordovaPlugin {
 
       this.callback.error(resultObj);
     } else {
+      if (filePath.endsWith(".pdf")) {
+        filePath = copyFileToInternalStorage(appContext, pvUrl, "userfiles");
+      }
       Log.d(TAG, "Filepath: " + filePath);
 
       this.callback.success("file://" + filePath);
@@ -332,66 +348,27 @@ public class FilePath extends CordovaPlugin {
   }
 
   public static String getRealPathFromURI(final Context context, final Uri uri) {
-    if (DocumentsContract.isDocumentUri(context, uri)) {
-      if (isExternalStorageDocument(uri)) {
-        final String docId = DocumentsContract.getDocumentId(uri);
-        final String[] split = docId.split(":");
-        final String type = split[0];
-        if ("primary".equalsIgnoreCase(type)) {
-          return Environment.getExternalStorageDirectory() + "/" + split[1];
-        } else {
-          return getFilePathFromContentUri(uri, context);
-        }
-      } else if (isDownloadsDocument(uri)) {
-        String fileName = getFilePath(context, uri);
-        if (fileName != null) {
-          return Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
-        }
-
-        String id = DocumentsContract.getDocumentId(uri);
-        if (id.startsWith("raw:")) {
-          id = id.replaceFirst("raw:", "");
-          File file = new File(id);
-          if (file.exists()) {
-            return id;
-          }
-        }
-        final Uri contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"),
-            Long.parseLong(id));
-        return getDataColumn(context, contentUri, null, null);
-      } else if (isMediaDocument(uri)) {
-        // MediaProvider
-        try {
-          String docId = DocumentsContract.getDocumentId(uri);
-          String[] split = docId.split(":");
-          String type = split[0];
-          Uri contentUri = null;
-          if ("image".equals(type)) {
-            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-          }
-          String selection = "_id=?";
-          String[] selectionArgs = new String[] { split[1] };
-          return getDataColumn(context, contentUri, selection, selectionArgs);
-        } catch (Exception e) {
-          String fileName = getFilePath(context, uri);
-          if (fileName != null) {
-            String file = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
-            File file1 = new File(file);
-            if (file1.exists()) {
-              return file;
-            } else {
-              file = copyFileToInternalStorage(context, uri, "userfiles");
-              return file;
-            }
-          }
-        }
-      } else {
-        return getFilePathFromContentUri(uri, context);
+    try {
+      String docId = DocumentsContract.getDocumentId(uri);
+      String[] split = docId.split(":");
+      String type = split[0];
+      Uri contentUri = null;
+      if ("image".equals(type)) {
+        contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
       }
-    } else if ("content".equalsIgnoreCase(uri.getScheme())) {
-      return getDataColumn(context, uri, null, null);
-    } else if ("file".equalsIgnoreCase(uri.getScheme())) {
-      return uri.getPath();
+      String selection = "_id=?";
+      String[] selectionArgs = new String[] { split[1] };
+      return getDataColumn(context, contentUri, selection, selectionArgs);
+    } catch (Exception e) {
+      String fileName = getFilePath(context, uri);
+      if (fileName != null) {
+        String file = Environment.getExternalStorageDirectory().toString() + "/Download/" + fileName;
+        File file1 = new File(file);
+        if (fileName.endsWith(".pdf")) {
+          file = copyFileToInternalStorage(context, uri, "userfiles");
+        }
+        return file;
+      }
     }
     return null;
   }
