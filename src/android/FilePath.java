@@ -137,8 +137,8 @@ public class FilePath extends CordovaPlugin {
 
       this.callback.error(resultObj);
     } else {
-      String fileName = filePath.toLowerCase();
-      if (fileName.endsWith(".pdf")) {
+      String fileName = filePath;
+      if (fileName.toLowerCase().endsWith(".pdf")) {
         filePath = copyFileToInternalStorage(appContext, pvUrl, "userfiles");
       }
       Log.d(TAG, "Filepath: " + filePath);
